@@ -9,3 +9,6 @@ BIN_NAME = archive
 build:
 	@go build -o $(BIN_PATH)/$(BIN_NAME) .
 
+clean:
+	rm -rfv $(BIN_PATH)
+
