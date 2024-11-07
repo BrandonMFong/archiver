@@ -3,6 +3,7 @@
 [] accepts specific arguments to archive
 [] macos notarization
 [] homebrew package
+[] what-if
 
 0.1
 [x] create archive directory
