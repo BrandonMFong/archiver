@@ -31,6 +31,8 @@ func ArgumentsRead() {
 		fmt.Println()
 		fmt.Println("args:")
 		flag.PrintDefaults()
+		fmt.Println("")
+		fmt.Println("Copyright © 2024 Brando. All rights reserved.")
 	}
 
 	var exit_program bool = false
