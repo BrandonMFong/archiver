@@ -20,6 +20,7 @@ ifeq ($(UNAME_S),Darwin)
 PACKAGE_NAME = archiver-macos
 endif
 PACKAGE_BIN_PATH = $(BIN_PATH)
+PACKAGE_BIN_TARGET = $(BIN_NAME)
 
 LIBS_MAKEFILES_PATH:=$(CURDIR)/external/libs/makefiles
 include $(LIBS_MAKEFILES_PATH)/package.mk 
