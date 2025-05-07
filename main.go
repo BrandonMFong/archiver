@@ -14,25 +14,28 @@ import (
 	"flag"
 )
 
-const VERSION = "0.1"
+const VERSION = "0.3"
 
 // the archive directory name
 const ARCHIVE_DIR_NAME = "archive"
 
-// version of program
-const ARG_VERSION = "version"
+// holds all targets we are going to archive
+var targets []string
+
+// true, no moving will occur
+var dry_run bool = false
 
 // reads arg
 //
 // conditionally exits programs
 func ArgumentsRead() {
 	flag.Usage = func() {
-		fmt.Println("usage: " + os.Args[0] + " [ <args> ] <path>")
+		fmt.Println("usage: " + os.Args[0] + " [ <args> ] <path> [<path>...] ")
 		fmt.Println()
 		fmt.Println("args:")
 		flag.PrintDefaults()
 		fmt.Println("")
-		fmt.Println("Copyright © 2024 Brando. All rights reserved.")
+		fmt.Println("Copyright © 2025 Brando. All rights reserved.")
 	}
 
 	var exit_program bool = false
@@ -42,10 +45,23 @@ func ArgumentsRead() {
 		return nil
 	})
 
+	flag.BoolFunc("dry-run", "shows details but does not archive anything", func(s string) error {
+		dry_run = true
+		return nil
+	})
+
 	flag.Parse()
 
 	if exit_program {
 		os.Exit(0)
+	}
+
+	for i := 0; i < flag.NArg(); i++ {
+		targets = append(targets, flag.Arg(i))
+	}
+
+	if len(targets) == 0 {
+		targets = append(targets, ".")
 	}
 }
 
@@ -61,6 +77,7 @@ func main() {
 // returns the target directory
 //
 // either can be the last argument or current directory
+/*
 func GetTargetDir() string {
 	if len(os.Args) < 2 {
 		return "."
@@ -68,12 +85,13 @@ func GetTargetDir() string {
 		return os.Args[len(os.Args)-1]
 	}
 }
+*/
 
 // creates the archive folder if not exists
-// exits program on error
 func SetupEnv() {
-	archive_path := filepath.Join(GetTargetDir(), ARCHIVE_DIR_NAME)
+	archive_path := ARCHIVE_DIR_NAME
     folderInfo, err := os.Stat(archive_path)
+
     if !os.IsNotExist(err) {
 		// if it does exist, it might be a file
 		if !folderInfo.IsDir() {
@@ -100,9 +118,13 @@ func DoArchive() {
 func PathArchive(path string) {
 	newpath := PathGetNewName(path)
 
-	err := os.Rename(path, newpath) // move
-	if err != nil {
-		fmt.Println(err)
+	if dry_run {
+		fmt.Println(path + " => " + newpath)
+	} else {
+		err := os.Rename(path, newpath) // move
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -113,7 +135,7 @@ func PathArchive(path string) {
 // exits program on error
 func PathGetNewName(path string) string {
 	var res string
-	archive_path := filepath.Join(GetTargetDir(), ARCHIVE_DIR_NAME) // archive folder
+	archive_path := ARCHIVE_DIR_NAME // archive folder
 	ext := filepath.Ext(path)
 	base_name := filepath.Base(path) // file name w/ ext
 	file_name := strings.TrimSuffix(base_name, ext) // file name w/o ext
@@ -143,16 +165,30 @@ func PathExists(path string) bool {
 
 // gets a list of paths that are subject to be archived
 func TargetDirGetPaths() []string {
-	items, err := os.ReadDir(GetTargetDir())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// craft current path
 	var res []string
-	for _, item := range items {
-		if item.Name() != ARCHIVE_DIR_NAME {
-			res = append(res, filepath.Join(GetTargetDir(), item.Name()))
+	for _, target := range targets {
+    	stat, err := os.Stat(target)
+
+		if err != nil {
+			log.Fatal(err)
+			continue
+		}
+
+		if !stat.IsDir() {
+			res = append(res, target)
+		} else {
+			items, err := os.ReadDir(target)
+			if err != nil {
+				log.Fatal(err)
+				continue
+			}
+
+			// craft current path
+			for _, item := range items {
+				if item.Name() != ARCHIVE_DIR_NAME {
+					res = append(res, item.Name())
+				}
+			}
 		}
 	}
 

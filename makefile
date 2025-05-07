@@ -30,7 +30,7 @@ help:
 	@echo "		make clean build package"
 
 build:
-	@go build -o $(BIN_PATH)/$(CONFIG)/$(BIN_NAME) .
+	go build -o $(BIN_PATH)/$(CONFIG)/$(BIN_NAME) .
 
 clean:
 	rm -rfv $(BIN_PATH)
